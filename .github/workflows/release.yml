@@ -47,35 +47,72 @@ jobs:
           echo "BUILD_NEEDED=false" >> $GITHUB_ENV
         fi
 
-    - name: Set up Qt
-      if: env.BUILD_NEEDED == 'true'
+    - name: Update aqtinstall
+      if: env.BUILD_NEEDED == 'true' && matrix.os == 'ubuntu-latest'
+      run: |
+        pip install --upgrade aqtinstall
+
+    - name: Set up Qt (Linux)
+      if: env.BUILD_NEEDED == 'true' && matrix.os == 'ubuntu-latest'
+      run: |
+        # Try aqtinstall
+        aqt install-qt linux desktop --version 5.15.2 --arch x86_64 || {
+          # Fallback to package manager
+          sudo apt-get update
+          sudo apt-get install -y qtbase5-dev
+        }
+
+    - name: Set up Qt (macOS)
+      if: env.BUILD_NEEDED == 'true' && matrix.os == 'macos-latest'
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2'
-        host: ${{ matrix.os == 'windows-latest' && 'windows' || 'linux' }}
+        host: macos
         target: desktop
         arch: x86_64
         dir: ${{ runner.workspace }}/Qt
+
+    - name: Set up Qt (Windows)
+      if: env.BUILD_NEEDED == 'true' && matrix.os == 'windows-latest'
+      run: |
+        # Uncomment one of the following methods
+        
+        # Method 1: Using Chocolatey
+        # choco install qt --version 5.15.2 --installargs 'ADD_CMAKE=1'
+
+        # Method 2: Using vcpkg
+        git clone https://github.com/microsoft/vcpkg
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg install qt5
+        .\vcpkg\vcpkg integrate install
+
+        # Method 3: Manual Installation
+        # powershell -Command "& {
+        #   $url = 'https://download.qt.io/official_releases/qt/5.15/5.15.2/qt-opensource-windows-x86-5.15.2.exe'
+        #   $output = 'qt-installer.exe'
+        #   Invoke-WebRequest -Uri $url -OutFile $output
+        #   Start-Process -Wait -FilePath $output -ArgumentList '/S' # /S is for silent installation
+        # }"
 
     - name: Install dependencies (Linux)
       if: env.BUILD_NEEDED == 'true' && matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgit2-dev libboost-all-dev qt5-qmake qtbase5-dev
+        sudo apt-get install -y libgit2-dev libboost-all-dev
 
     - name: Install dependencies (macOS)
       if: env.BUILD_NEEDED == 'true' && matrix.os == 'macos-latest'
       run: |
         brew update
-        brew install libgit2 boost qt@5
+        brew install libgit2 boost
 
     - name: Install dependencies (Windows)
       if: env.BUILD_NEEDED == 'true' && matrix.os == 'windows-latest'
       run: |
         git clone https://github.com/microsoft/vcpkg
-        ./vcpkg/bootstrap-vcpkg.bat
-        ./vcpkg/vcpkg install libgit2:x64-windows boost:x64-windows
-        ./vcpkg/vcpkg integrate install
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg install libgit2:x64-windows boost:x64-windows
+        .\vcpkg\vcpkg integrate install
 
     - name: Configure project with CMake (Linux/macOS)
       if: env.BUILD_NEEDED == 'true' && matrix.os != 'windows-latest'
