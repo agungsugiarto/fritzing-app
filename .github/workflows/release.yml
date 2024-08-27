@@ -72,27 +72,32 @@ jobs:
         arch: x86_64
         dir: ${{ runner.workspace }}/Qt
 
-    - name: Set up Qt (Windows)
+    # - name: Set up Qt (Windows) - Method 1: Using Chocolatey
+    #   if: env.BUILD_NEEDED == 'true' && matrix.os == 'windows-latest'
+    #   run: |
+    #     # Uncomment to use Chocolatey
+    #     # choco install qt --version 5.15.2 --installargs 'ADD_CMAKE=1'
+
+    - name: Set up Qt (Windows) - Method 2: Using vcpkg
       if: env.BUILD_NEEDED == 'true' && matrix.os == 'windows-latest'
       run: |
-        # Uncomment one of the following methods
-        
-        # Method 1: Using Chocolatey
-        # choco install qt --version 5.15.2 --installargs 'ADD_CMAKE=1'
-
         # Method 2: Using vcpkg
-        # git clone https://github.com/microsoft/vcpkg
-        # .\vcpkg\bootstrap-vcpkg.bat
-        # .\vcpkg\vcpkg install qt5
-        # .\vcpkg\vcpkg integrate install
+        git clone https://github.com/microsoft/vcpkg
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg install qt5
+        .\vcpkg\vcpkg integrate install
 
-        # Method 3: Manual Installation
-        powershell -Command "& {
-          $url = 'https://download.qt.io/official_releases/qt/5.15/5.15.2/qt-opensource-windows-x86-5.15.2.exe'
-          $output = 'qt-installer.exe'
-          Invoke-WebRequest -Uri $url -OutFile $output
-          Start-Process -Wait -FilePath $output -ArgumentList '/S' # /S is for silent installation
-        }"
+    # Uncomment and configure if you want to use Manual Installation for Windows
+    # - name: Set up Qt (Windows) - Method 3: Manual Installation
+    #   if: env.BUILD_NEEDED == 'true' && matrix.os == 'windows-latest'
+    #   run: |
+    #     # Manual Installation
+    #     pwsh -Command "& {
+    #       $url = 'https://download.qt.io/official_releases/qt/5.15/5.15.2/qt-opensource-windows-x86-5.15.2.exe'
+    #       $output = 'qt-installer.exe'
+    #       Invoke-WebRequest -Uri $url -OutFile $output
+    #       Start-Process -Wait -FilePath $output -ArgumentList '/S' # /S is for silent installation
+    #     }"
 
     - name: Install dependencies (Linux)
       if: env.BUILD_NEEDED == 'true' && matrix.os == 'ubuntu-latest'
