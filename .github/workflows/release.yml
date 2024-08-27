@@ -67,7 +67,7 @@ jobs:
       uses: jurplel/install-qt-action@v3
       with:
         version: '5.15.2'
-        host: macos
+        host: mac
         target: desktop
         arch: x86_64
         dir: ${{ runner.workspace }}/Qt
@@ -81,18 +81,18 @@ jobs:
         # choco install qt --version 5.15.2 --installargs 'ADD_CMAKE=1'
 
         # Method 2: Using vcpkg
-        git clone https://github.com/microsoft/vcpkg
-        .\vcpkg\bootstrap-vcpkg.bat
-        .\vcpkg\vcpkg install qt5
-        .\vcpkg\vcpkg integrate install
+        # git clone https://github.com/microsoft/vcpkg
+        # .\vcpkg\bootstrap-vcpkg.bat
+        # .\vcpkg\vcpkg install qt5
+        # .\vcpkg\vcpkg integrate install
 
         # Method 3: Manual Installation
-        # powershell -Command "& {
-        #   $url = 'https://download.qt.io/official_releases/qt/5.15/5.15.2/qt-opensource-windows-x86-5.15.2.exe'
-        #   $output = 'qt-installer.exe'
-        #   Invoke-WebRequest -Uri $url -OutFile $output
-        #   Start-Process -Wait -FilePath $output -ArgumentList '/S' # /S is for silent installation
-        # }"
+        powershell -Command "& {
+          $url = 'https://download.qt.io/official_releases/qt/5.15/5.15.2/qt-opensource-windows-x86-5.15.2.exe'
+          $output = 'qt-installer.exe'
+          Invoke-WebRequest -Uri $url -OutFile $output
+          Start-Process -Wait -FilePath $output -ArgumentList '/S' # /S is for silent installation
+        }"
 
     - name: Install dependencies (Linux)
       if: env.BUILD_NEEDED == 'true' && matrix.os == 'ubuntu-latest'
